@@ -24,13 +24,13 @@ export async function getProviderSettings(db: SQLiteDatabase): Promise<ProviderS
 
 /* ---------------- Gyorsítótár (provider_cache tábla) ---------------- */
 
-async function cacheGet<T>(db: SQLiteDatabase, provider: string, key: string): Promise<T | undefined> {
+async function cacheGet<T>(db: SQLiteDatabase, provider: string, key: string, maxDays = CACHE_DAYS): Promise<T | undefined> {
   const row = await db.getFirstAsync<{ payload: string; fetched_at: string }>(
     'SELECT payload, fetched_at FROM provider_cache WHERE provider = ? AND query_key = ?',
     [provider, key],
   );
   if (!row) return undefined;
-  if (Date.now() - new Date(row.fetched_at).getTime() > CACHE_DAYS * 864e5) return undefined;
+  if (Date.now() - new Date(row.fetched_at).getTime() > maxDays * 864e5) return undefined;
   return JSON.parse(row.payload) as T;
 }
 
@@ -144,6 +144,40 @@ export async function resolveStops(
     tick();
   }
   return out;
+}
+
+/* ---------------- Felfedezés: közeli vendéglátóhelyek („Hova ma?”) ---------------- */
+
+/** Felfedezésnél rövidebb a gyorsítótár: új helyek nyílnak, régiek bezárnak */
+const DISCOVER_CACHE_DAYS = 14;
+
+/**
+ * Vendéglátóhelyek a megadott pont körül, távolság szerint. A pontot ~100 m-re kerekítjük,
+ * így a környéken mozogva nem kérdezünk újra (és pontos helyzet sem megy ki).
+ *  - osm / auto: OpenStreetMap; auto módban hiba esetén Google, ha van kulcs
+ *  - google: Google Places (legfeljebb 10 találat / hívás)
+ */
+export async function discoverNearby(db: SQLiteDatabase, here: Point, radiusM: number, settings: ProviderSettings) {
+  const p = { lat: Number(here.lat.toFixed(3)), lon: Number(here.lon.toFixed(3)) };
+  const key = `disc:${p.lat},${p.lon},${radiusM}`;
+  const useGoogle = settings.mode === 'google' && !!settings.googleKey;
+  const run = async (prov: PlaceProvider) => {
+    const hit = await cacheGet<PlaceCandidate[]>(db, prov.id, key, DISCOVER_CACHE_DAYS);
+    if (hit) return hit;
+    const fresh = await prov.findFoodPlacesNear(p.lat, p.lon, radiusM);
+    await cachePut(db, prov.id, key, fresh);
+    return fresh;
+  };
+  if (useGoogle) return run(createGoogleProvider(settings.googleKey!));
+  if (settings.mode === 'google') {
+    throw new ProviderError('A Google szolgáltatóhoz API-kulcs kell. Add meg a Beállításokban, vagy válaszd az OpenStreetMap-et.');
+  }
+  try {
+    return await run(osmProvider);
+  } catch (e) {
+    if (settings.mode === 'auto' && settings.googleKey) return run(createGoogleProvider(settings.googleKey));
+    throw e;
+  }
 }
 
 /** Egy hívás a Google felé a kulcs kipróbálásához (Deák tér környéke). */

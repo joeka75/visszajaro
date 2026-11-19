@@ -57,6 +57,8 @@ export async function notifyVisit(p: {
   name: string;
   emoji: string | null;
   rating: Rating;
+  /** a Kipróbálnám listáról, első látogatás */
+  firstTry?: boolean;
   start: Date;
   end: Date;
 }) {
@@ -71,7 +73,7 @@ export async function notifyVisit(p: {
   const data: VisitNotificationData = { placeId: p.placeId, visitId: p.visitId };
   await Notifications.scheduleNotificationAsync({
     content: {
-      title: `${p.emoji ?? '🍽️'} Itt jártál: ${p.name}`,
+      title: p.firstTry ? `🔖 Végre kipróbáltad: ${p.name}` : `${p.emoji ?? '🍽️'} Itt jártál: ${p.name}`,
       body,
       data,
       categoryIdentifier: CATEGORY_ID,

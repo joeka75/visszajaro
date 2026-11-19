@@ -12,6 +12,7 @@ const FILTERS: [ListFilter, string][] = [
   ['up', '👍 Tetszett'],
   ['down', '👎 Nem tetszett'],
   ['none', 'Értékeletlen'],
+  ['wish', '🔖 Kipróbálnám'],
   ['hidden', 'Rejtett'],
 ];
 

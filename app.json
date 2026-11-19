@@ -55,7 +55,8 @@
           "color": "#D9480F"
         }
       ],
-      "./plugins/with-cmake-version"
+      "./plugins/with-cmake-version",
+      "expo-sharing"
     ],
     "experiments": {
       "typedRoutes": true,

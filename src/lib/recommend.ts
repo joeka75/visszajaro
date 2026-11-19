@@ -31,9 +31,16 @@ export function nearbyFavourites(ps: PlaceSummary[], here: Here, limit = 3) {
 
 export function unrated(ps: PlaceSummary[], limit = 4) {
   return visible(ps)
-    .filter((p) => !p.rating)
+    .filter((p) => !p.rating && p.visit_count > 0)
     .sort(byLastVisitDesc)
     .slice(0, limit);
+}
+
+/** „Kipróbálnám”: elmentett, de még meg nem látogatott helyek, a legutóbb mentett elöl */
+export function wishlist(ps: PlaceSummary[]) {
+  return visible(ps)
+    .filter((p) => p.wish_at && p.visit_count === 0)
+    .sort((a, b) => (b.wish_at ?? '').localeCompare(a.wish_at ?? ''));
 }
 
 export function randomFavourite(ps: PlaceSummary[]) {
@@ -41,14 +48,15 @@ export function randomFavourite(ps: PlaceSummary[]) {
   return liked.length ? liked[Math.floor(Math.random() * liked.length)] : null;
 }
 
-export type ListFilter = 'all' | 'up' | 'down' | 'none' | 'hidden';
+export type ListFilter = 'all' | 'up' | 'down' | 'none' | 'wish' | 'hidden';
 export type ListSort = 'recent' | 'count' | 'name' | 'dist';
 
 export function filterAndSort(ps: PlaceSummary[], f: ListFilter, sort: ListSort, q: string, here: Here | null) {
   let out = f === 'hidden' ? ps.filter((p) => p.hidden) : visible(ps);
   if (f === 'up') out = out.filter((p) => p.rating === 'up');
   if (f === 'down') out = out.filter((p) => p.rating === 'down');
-  if (f === 'none') out = out.filter((p) => !p.rating);
+  if (f === 'none') out = out.filter((p) => !p.rating && p.visit_count > 0);
+  if (f === 'wish') out = out.filter((p) => p.wish_at && p.visit_count === 0);
   const query = q.trim().toLowerCase();
   if (query) {
     out = out.filter((p) => `${p.name} ${p.cuisine ?? ''} ${p.address ?? ''}`.toLowerCase().includes(query));

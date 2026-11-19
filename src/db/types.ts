@@ -17,6 +17,8 @@ export interface Place {
   google_place_id: string | null;
   osm_id: string | null;
   source: PlaceSource;
+  /** „Kipróbálnám” listára tette (ISO idő) */
+  wish_at: string | null;
 }
 
 /** Hely + értékelés + látogatás-összesítő, a listákhoz */

@@ -34,6 +34,7 @@ export default function RootLayout() {
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen name="place/[id]" options={{ title: '', headerBackTitle: 'Vissza' }} />
           <Stack.Screen name="import" options={{ title: 'Idővonal importálása', headerBackTitle: 'Vissza' }} />
+          <Stack.Screen name="share/[id]" options={{ title: 'Megosztás', headerBackTitle: 'Vissza', presentation: 'modal' }} />
         </Stack>
       </ThemeProvider>
     </SQLiteProvider>

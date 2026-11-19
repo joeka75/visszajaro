@@ -4,13 +4,14 @@ import { useEffect, useRef, useState } from 'react';
 import { Alert, Linking, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { Button, Card, Empty, Screen, SectionTitle } from '@/components/ui';
+import { removeWish } from '@/db/places';
 import { setHidden, setNote, setRating } from '@/db/repo';
 import { ago, distanceM, fmtDay, fmtDist, fmtTime, minutesBetween } from '@/lib/format';
 import { useHere, usePlace, useVisits } from '@/lib/hooks';
 import { radius, space, useColors } from '@/theme';
 
 export default function PlaceScreen() {
-  const { id, pick } = useLocalSearchParams<{ id: string; pick?: string }>();
+  const { id, pick, rated } = useLocalSearchParams<{ id: string; pick?: string; rated?: string }>();
   const c = useColors();
   const db = useSQLiteContext();
   const { data: p, loaded } = usePlace(id);
@@ -89,6 +90,15 @@ export default function PlaceScreen() {
         </View>
       ) : null}
 
+      {p.wish_at && !p.visit_count ? (
+        <View style={[styles.banner, { backgroundColor: c.accentSoft, flexDirection: 'row', alignItems: 'center' }]}>
+          <Text style={{ color: c.text, flex: 1 }}>🔖 A Kipróbálnám listádon van. Ha elmész ide, magától felismerem.</Text>
+          <Pressable accessibilityRole="button" onPress={() => removeWish(db, p.id).then(() => router.back())} hitSlop={8}>
+            <Text style={{ color: c.bad, fontWeight: '600' }}>Levétel</Text>
+          </Pressable>
+        </View>
+      ) : null}
+
       <View style={styles.seg}>
         {(['up', 'down'] as const).map((v) => {
           const on = p.rating === v;
@@ -108,6 +118,21 @@ export default function PlaceScreen() {
           );
         })}
       </View>
+
+      {p.rating === 'up' ? (
+        <View style={[styles.shareBox, { backgroundColor: rated === 'up' ? c.accentSoft : c.card, borderColor: rated === 'up' ? c.accent : c.line }]}>
+          <Text style={{ color: c.text, fontWeight: '700', fontSize: 15 }}>
+            {rated === 'up' ? 'Örülök, hogy tetszett! 🎉' : 'Jó hely? Ajánld a barátaidnak!'}
+          </Text>
+          <Text style={{ color: c.muted, fontSize: 13, marginTop: 2 }}>Egy szép kártya Instagramra, Facebookra vagy üzenetben.</Text>
+          <Button
+            label="📤  Megosztókártya"
+            kind={rated === 'up' ? 'primary' : 'soft'}
+            onPress={() => router.push({ pathname: '/share/[id]', params: { id: p.id } })}
+            style={{ marginTop: space.s }}
+          />
+        </View>
+      ) : null}
 
       <Text style={[styles.label, { color: c.muted }]}>Jegyzet magadnak</Text>
       <TextInput
@@ -154,6 +179,7 @@ const styles = StyleSheet.create({
   title: { fontSize: 26, fontWeight: '800', letterSpacing: -0.4 },
   banner: { marginTop: space.m, borderRadius: radius.m, padding: space.m },
   seg: { flexDirection: 'row', gap: space.s, marginVertical: space.l },
+  shareBox: { borderWidth: 1, borderRadius: radius.m, padding: space.m, marginBottom: space.l },
   segBtn: { flex: 1, borderWidth: 1.5, borderRadius: radius.m, paddingVertical: 14, alignItems: 'center' },
   label: { fontSize: 13, fontWeight: '600', marginBottom: 6 },
   note: { borderWidth: 1, borderRadius: radius.m, padding: space.m, minHeight: 80, textAlignVertical: 'top', fontSize: 15 },

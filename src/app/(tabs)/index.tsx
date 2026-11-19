@@ -1,10 +1,11 @@
 import { router } from 'expo-router';
 import { StyleSheet, Text, View } from 'react-native';
 
+import { DiscoverSection } from '@/components/discover-section';
 import { PlaceRow } from '@/components/place-row';
 import { Button, Empty, Screen, SectionTitle } from '@/components/ui';
 import { useHere, usePlaces } from '@/lib/hooks';
-import { longAgoFavourites, nearbyFavourites, randomFavourite, unrated, visible } from '@/lib/recommend';
+import { longAgoFavourites, nearbyFavourites, randomFavourite, unrated, visible, wishlist } from '@/lib/recommend';
 import { radius, space, useColors } from '@/theme';
 
 export default function HomeScreen() {
@@ -16,6 +17,7 @@ export default function HomeScreen() {
   const longAgo = longAgoFavourites(places);
   const near = here ? nearbyFavourites(places, here) : [];
   const toRate = unrated(places);
+  const wishes = wishlist(places);
 
   const pick = () => {
     const p = randomFavourite(places);
@@ -51,6 +53,17 @@ export default function HomeScreen() {
           {near.length ? near.map((p) => <PlaceRow key={p.id} p={p} here={here} />) : <Empty text="Még nincs 👍-os helyed." />}
         </>
       ) : null}
+
+      {wishes.length ? (
+        <>
+          <SectionTitle title="🔖 Kipróbálnám" hint={`${wishes.length} hely`} />
+          {wishes.slice(0, 5).map((p) => (
+            <PlaceRow key={p.id} p={p} here={here} />
+          ))}
+        </>
+      ) : null}
+
+      {here ? <DiscoverSection here={here} places={places} /> : null}
 
       <SectionTitle title="Milyen volt?" hint="értékeld egy koppintással" />
       {toRate.length ? (

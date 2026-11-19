@@ -106,6 +106,11 @@ const MIGRATIONS: string[] = [
     message TEXT NOT NULL
   );
   `,
+
+  // 3 – „Kipróbálnám” lista (M4): mikor mentette el a felhasználó a helyet későbbre
+  `
+  ALTER TABLE places ADD COLUMN wish_at TEXT;
+  `,
 ];
 
 export async function migrate(db: SQLiteDatabase) {

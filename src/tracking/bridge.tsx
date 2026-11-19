@@ -35,7 +35,8 @@ export function TrackingBridge() {
         case ACTION_UP:
         case ACTION_DOWN:
           await setRating(db, placeId, response.actionIdentifier);
-          router.push({ pathname: '/place/[id]', params: { id: placeId } });
+          // 👍 után a részletek oldalon felajánljuk a megosztást
+          router.push({ pathname: '/place/[id]', params: { id: placeId, rated: response.actionIdentifier } });
           break;
         case ACTION_WRONG:
           await deleteWrongVisit(db, visitId, placeId);

@@ -32,7 +32,7 @@ export function PlaceRow({ p, here, quickRate }: { p: PlaceSummary; here?: Here 
           </Text>
         ) : null}
         <Text numberOfLines={1} style={[styles.sub, { color: c.muted }]}>
-          Utoljára {ago(p.last_visit)} · {p.visit_count}× jártál itt
+          {p.visit_count ? `Utoljára ${ago(p.last_visit)} · ${p.visit_count}× jártál itt` : '🔖 Kipróbálnám – még nem jártál itt'}
         </Text>
       </View>
       {quickRate && !p.rating ? (
@@ -56,7 +56,7 @@ export function PlaceRow({ p, here, quickRate }: { p: PlaceSummary; here?: Here 
             { backgroundColor: p.rating === 'up' ? c.goodSoft : p.rating === 'down' ? c.badSoft : c.line },
           ]}>
           <Text style={{ fontSize: 14, color: c.muted, fontWeight: '700' }}>
-            {p.rating === 'up' ? '👍' : p.rating === 'down' ? '👎' : '?'}
+            {p.rating === 'up' ? '👍' : p.rating === 'down' ? '👎' : p.visit_count ? '?' : '🔖'}
           </Text>
         </View>
       )}

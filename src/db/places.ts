@@ -4,8 +4,11 @@ import type { SQLiteDatabase } from 'expo-sqlite';
 import { distanceM } from '@/lib/format';
 import type { PlaceCandidate } from '@/providers/types';
 
+import { bump } from './events';
+import type { PlaceSource } from './types';
+
 /** Név összehasonlításhoz: kisbetű, ékezet és írásjelek nélkül */
-const norm = (s: string) =>
+export const normName = (s: string) =>
   s
     .toLowerCase()
     .normalize('NFD')
@@ -19,7 +22,7 @@ const norm = (s: string) =>
 export async function upsertPlace(
   db: SQLiteDatabase,
   c: PlaceCandidate,
-  source: 'import' | 'auto',
+  source: Exclude<PlaceSource, 'demo'>,
   fallbackAddress?: string | null,
 ): Promise<{ id: string; created: boolean }> {
   const idCol = c.provider === 'google' ? 'google_place_id' : 'osm_id';
@@ -31,7 +34,7 @@ export async function upsertPlace(
        AND lat BETWEEN ? AND ? AND lon BETWEEN ? AND ?`,
     [c.lat - 0.0005, c.lat + 0.0005, c.lon - 0.0008, c.lon + 0.0008],
   );
-  const same = near.find((p) => norm(p.name) === norm(c.name) && distanceM(p.lat, p.lon, c.lat, c.lon) <= 40);
+  const same = near.find((p) => normName(p.name) === normName(c.name) && distanceM(p.lat, p.lon, c.lat, c.lon) <= 40);
   const now = new Date().toISOString();
   if (same) {
     await db.runAsync(`UPDATE places SET ${idCol} = ?, updated_at = ? WHERE id = ?`, [c.externalId, now, same.id]);
@@ -61,4 +64,39 @@ export async function upsertPlace(
     ],
   );
   return { id, created: true };
+}
+
+/** „Kipróbálnám”: a felfedezett helyet elmenti későbbre */
+export async function addWish(db: SQLiteDatabase, c: PlaceCandidate) {
+  let id = '';
+  await db.withTransactionAsync(async () => {
+    id = (await upsertPlace(db, c, 'manual')).id;
+    await db.runAsync('UPDATE places SET wish_at = ?, updated_at = ? WHERE id = ?', [new Date().toISOString(), new Date().toISOString(), id]);
+  });
+  bump();
+  return id;
+}
+
+/** Levétel a „Kipróbálnám” listáról; ha a hely csak emiatt volt meg, törlődik */
+export async function removeWish(db: SQLiteDatabase, placeId: string) {
+  await db.withTransactionAsync(async () => {
+    await db.runAsync('UPDATE places SET wish_at = NULL WHERE id = ?', [placeId]);
+    await db.runAsync(
+      `DELETE FROM places WHERE id = ? AND source = 'manual'
+         AND NOT EXISTS (SELECT 1 FROM visits WHERE place_id = ?)
+         AND NOT EXISTS (SELECT 1 FROM ratings WHERE place_id = ?)`,
+      [placeId, placeId, placeId],
+    );
+  });
+  bump();
+}
+
+/** Megosztás naplózása (statisztikához, később: melyik csatorna hoz új felhasználót) */
+export async function logShare(db: SQLiteDatabase, placeId: string, channel: string) {
+  await db.runAsync('INSERT INTO shares (id, place_id, channel, created_at) VALUES (?, ?, ?, ?)', [
+    randomUUID(),
+    placeId,
+    channel,
+    new Date().toISOString(),
+  ]);
 }

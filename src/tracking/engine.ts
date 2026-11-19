@@ -200,6 +200,10 @@ export async function processPending(db: SQLiteDatabase) {
       if (!inserted) continue;
       await log(db, 'visit', `${c.emoji ?? ''} ${c.name} (${Math.round(c.distanceM ?? 0)} m)`.trim());
       const rated = await db.getFirstAsync<{ value: Rating }>('SELECT value FROM ratings WHERE place_id = ?', [placeId]);
+      const wish = await db.getFirstAsync<{ wish_at: string | null; n: number }>(
+        'SELECT wish_at, (SELECT COUNT(*) FROM visits WHERE place_id = ?) AS n FROM places WHERE id = ?',
+        [placeId, placeId],
+      );
       try {
         await notifyVisit({
           placeId,
@@ -207,6 +211,7 @@ export async function processPending(db: SQLiteDatabase) {
           name: c.name,
           emoji: c.emoji,
           rating: rated?.value ?? null,
+          firstTry: !!wish?.wish_at && wish.n === 1,
           start: new Date(row.start_at),
           end: new Date(row.end_at),
         });
