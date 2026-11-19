@@ -1,56 +1,73 @@
-# Welcome to your Expo app 👋
+# Visszajáró – mobilapp (Android + iOS)
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Expo (SDK 58) + React Native + TypeScript. A terv: [../ARCHITEKTURA.md](../ARCHITEKTURA.md), a koncepció: [../KONCEPCIO.md](../KONCEPCIO.md).
 
-## Get started
+## Indítás a saját telefonodon (Android)
 
-1. Install dependencies
-
+1. Telepítsd a telefonra a **Expo Go** appot a Play Áruházból.
+2. A gépen, ebben a mappában:
    ```bash
    npm install
-   ```
-
-2. Start the app
-
-   ```bash
    npx expo start
    ```
+3. A telefon és a gép **ugyanazon a Wi-Fi-n** legyen. Az Expo Go-ban olvasd be a terminálban megjelenő QR-kódot.
 
-In the output, you'll find options to open the app in a
+Emulátoron: indítsd el az Android Studio emulátort, majd `npx expo start --android`.
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+## Fejlesztői build (M3-tól kötelező)
 
-You can start developing by editing the files inside the **src/app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+A háttér-helyfigyelés és az értesítés-gombok az Expo Go-ban nem működnek, ezért saját fejlesztői build kell.
 
-## Get a fresh project
+1. A telefonon: Fejlesztői beállítások → **USB-hibakeresés** be; USB-kábellel a géphez; „Engedélyezed az USB-hibakeresést?” → Engedélyezés.
+2. A gépen (egyszer, ill. ha natív csomag vagy app.json változik):
+   ```bash
+   npx expo run:android --device
+   ```
+   Ehhez kell: JAVA_HOME = Android Studio JBR (`C:\Program Files\Android\Android Studio\jbr`), ANDROID_HOME = `%LOCALAPPDATA%\Android\Sdk`.
+3. Utána a napi fejlesztéshez elég a JS-szerver: `npx expo start --dev-client`, és a telefonon a **Visszajáró** ikon (nem az Expo Go).
+   USB-n: `adb reverse tcp:8081 tcp:8081`, vagy ugyanazon a Wi-Fi-n a szerver címét kell megadni.
 
-When you're ready, run:
+Az `android/` és `ios/` mappát a build generálja (nincs Gitben); natív beállítás csak az `app.json`-ban legyen.
+
+## Automatikus felismerés (M3)
+
+Beállítások → Automatikus felismerés → Bekapcsolás → hely: „Mindig engedélyezés”, értesítések: engedélyezés.
+Samsungon: Beállítások → Alkalmazások → Visszajáró → Akkumulátor → „Nem korlátozott”, különben a rendszer leállítja a háttérben.
+Működés: `src/tracking/` – `dwell.ts` (megállás-felismerő, tesztje: `scripts/test-dwell.ts`), `task.ts` (háttérfeladat),
+`engine.ts` (megállás → étterem → látogatás → értesítés), `bridge.tsx` (értesítés gombjai).
+A Beállításokban a „Napló (teszteléshez)” mutatja, mit érzékelt.
+
+## Ellenőrzés
 
 ```bash
-npm run reset-project
+npm run typecheck
+npx eslint src
+npm test            # Idővonal-feldolgozó és megállás-felismerő tesztjei
 ```
 
-This command will move the starter code to the **example** directory and create a blank **src/app** directory where you can start developing.
+## Google Places API-kulcs
 
-### Other setup steps
+Az appban: Beállítások → Google Places API-kulcs → beillesztés → „Mentés és teszt”.
+Alternatíva fejlesztéshez: `.env` fájl ebben a mappában ezzel a sorral: `EXPO_PUBLIC_GOOGLE_PLACES_KEY=...` (a `.env` ne kerüljön Gitbe).
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+## Felépítés
 
-## Learn more
+```
+src/app/                 képernyők (expo-router)
+  (tabs)/index.tsx       Hova ma?
+  (tabs)/places.tsx      Helyeim
+  (tabs)/settings.tsx    Beállítások
+  place/[id].tsx         Részletek, értékelés, jegyzet, látogatások
+src/db/                  SQLite séma (migrations.ts), lekérdezések (repo.ts)
+src/lib/                 formázás, ajánló logika, adat-hookok
+src/providers/           helyszolgáltató felület (Google / OSM)
+src/import/              Google Idővonal import
+src/tracking/            háttér-helyfigyelés, automatikus felismerés (M3)
+src/features.ts          Pro funkciók kapcsolói
+```
 
-To learn more about developing your project with Expo, look at the following resources:
+Az adatbázis-séma módosításakor **új migrációt** adj a `src/db/migrations.ts` tömb végére, a régieket ne írd át.
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+## Azonosítók
 
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+Android csomagnév és iOS bundle ID: `hu.visszajaro.app` (`app.json`). Az első Play Áruházas feltöltés után a csomagnév már nem változtatható – addig átírható.

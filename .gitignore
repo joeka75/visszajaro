@@ -9,7 +9,9 @@ dist/
 web-build/
 expo-env.d.ts
 
-# Native
+# Native (a /android és /ios mappát az expo prebuild generálja az app.json-ból)
+/android
+/ios
 .kotlin/
 *.orig.*
 *.jks
@@ -31,6 +33,7 @@ yarn-error.*
 *.pem
 
 # local env files
+.env
 .env*.local
 
 # typescript
