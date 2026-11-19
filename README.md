@@ -1,6 +1,6 @@
 # Visszajáró – mobilapp (Android + iOS)
 
-Expo (SDK 58) + React Native + TypeScript. A terv: [../ARCHITEKTURA.md](../ARCHITEKTURA.md), a koncepció: [../KONCEPCIO.md](../KONCEPCIO.md).
+Expo (SDK 58) + React Native + TypeScript. A terv: [docs/ARCHITEKTURA.md](docs/ARCHITEKTURA.md), a koncepció: [docs/KONCEPCIO.md](docs/KONCEPCIO.md), a korai böngészős prototípus: [docs/prototipus/index.html](docs/prototipus/index.html).
 
 ## Indítás a saját telefonodon (Android)
 

@@ -1,0 +1,688 @@
+<!doctype html>
+<html lang="hu">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Visszajáró prototípus</title>
+<style>
+:root{
+  --bg:#efe7de; --app:#fffaf5; --card:#ffffff; --ink:#2b2420; --muted:#7a6d64; --line:#eadfd5;
+  --accent:#d9480f; --accent-ink:#ffffff; --accent-soft:#ffe8dc;
+  --good:#2b8a3e; --good-soft:#e3f6e7; --bad:#c92a2a; --bad-soft:#fde4e4;
+  --spons:#6741d9; --spons-soft:#efe9ff; --shadow:0 1px 2px rgba(60,40,20,.08),0 4px 14px rgba(60,40,20,.06);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#141110; --app:#1c1816; --card:#26201d; --ink:#f3ebe4; --muted:#a8998e; --line:#3a312c;
+    --accent:#ff7a3d; --accent-ink:#1c1816; --accent-soft:#3d2418;
+    --good:#69db7c; --good-soft:#1e3324; --bad:#ff8787; --bad-soft:#3d1f1f;
+    --spons:#b197fc; --spons-soft:#2b2240; --shadow:0 1px 2px rgba(0,0,0,.4);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#141110; --app:#1c1816; --card:#26201d; --ink:#f3ebe4; --muted:#a8998e; --line:#3a312c;
+  --accent:#ff7a3d; --accent-ink:#1c1816; --accent-soft:#3d2418;
+  --good:#69db7c; --good-soft:#1e3324; --bad:#ff8787; --bad-soft:#3d1f1f;
+  --spons:#b197fc; --spons-soft:#2b2240; --shadow:0 1px 2px rgba(0,0,0,.4);
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{background:var(--bg);color:var(--ink);font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased}
+.app{display:flex;flex-direction:column;height:100dvh;max-width:430px;margin:0 auto;background:var(--app);position:relative}
+@media (min-width:600px){
+  .app{height:min(880px,calc(100dvh - 48px));margin:24px auto;border-radius:32px;border:1px solid var(--line);box-shadow:0 20px 60px rgba(0,0,0,.18);overflow:hidden}
+}
+header{display:flex;align-items:center;gap:8px;padding:14px 16px 10px;border-bottom:1px solid var(--line)}
+header h1{font-size:19px;margin:0;letter-spacing:-.2px}
+header h1 span{color:var(--accent)}
+.tag{font-size:11px;padding:2px 8px;border-radius:99px;background:var(--accent-soft);color:var(--accent);font-weight:600}
+header .spacer{flex:1}
+main{flex:1;overflow-y:auto;padding:16px 16px 24px}
+nav{display:flex;border-top:1px solid var(--line);background:var(--app);padding-bottom:env(safe-area-inset-bottom)}
+nav button{flex:1;border:0;background:none;color:var(--muted);padding:9px 4px 11px;font:inherit;font-size:12px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px}
+nav button .i{font-size:20px;line-height:1}
+nav button.on{color:var(--accent);font-weight:600}
+h2{font-size:22px;margin:0 0 4px;letter-spacing:-.3px}
+h3{font-size:15px;margin:22px 0 8px;display:flex;align-items:center;gap:6px}
+h3 small{font-weight:400;color:var(--muted);font-size:13px}
+.muted{color:var(--muted)}
+.small{font-size:13px}
+.hero{background:linear-gradient(135deg,var(--accent),#f08c00);color:#fff;border-radius:20px;padding:18px;box-shadow:var(--shadow)}
+.hero h2{color:#fff}
+.hero p{margin:0 0 12px;opacity:.92}
+.hero .btn{background:#fff;color:#c2410c}
+.locbar{display:flex;align-items:center;gap:8px;margin:12px 0 0;font-size:13px;color:var(--muted)}
+.locbar b{color:var(--ink);font-weight:600}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:0;border-radius:12px;padding:10px 14px;font:inherit;font-weight:600;background:var(--accent);color:var(--accent-ink);cursor:pointer;text-decoration:none}
+.btn.ghost{background:var(--accent-soft);color:var(--accent)}
+.btn.sm{padding:6px 10px;font-size:13px;border-radius:10px}
+.btn.block{width:100%}
+.btn:disabled{opacity:.5;cursor:default}
+.link{border:0;background:none;color:var(--accent);font:inherit;cursor:pointer;padding:0}
+.link.danger{color:var(--bad)}
+.list{display:flex;flex-direction:column;gap:8px}
+.row{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:10px 12px;cursor:pointer;box-shadow:var(--shadow);text-align:left}
+.row:hover{border-color:var(--accent)}
+.ico{width:42px;height:42px;border-radius:12px;background:var(--accent-soft);display:grid;place-items:center;font-size:22px;flex:none}
+.rmain{flex:1;min-width:0}
+.rname{font-weight:650;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rsub,.rmeta{font-size:13px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.badge{width:30px;height:30px;border-radius:99px;display:grid;place-items:center;font-size:15px;flex:none}
+.badge.up{background:var(--good-soft)} .badge.down{background:var(--bad-soft)} .badge.none{background:var(--line);color:var(--muted);font-weight:700;font-size:13px}
+.quick{display:flex;gap:6px;flex:none}
+.quick button{width:36px;height:36px;border-radius:99px;border:1px solid var(--line);background:var(--app);font-size:16px;cursor:pointer}
+.quick button:hover{border-color:var(--accent)}
+.row.spons{border-color:var(--spons);background:var(--spons-soft)}
+.row.spons .ico{background:var(--card)}
+.slabel{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--spons)}
+.empty{border:1.5px dashed var(--line);border-radius:16px;padding:16px;color:var(--muted);font-size:14px;text-align:center}
+.chips{display:flex;gap:6px;overflow-x:auto;margin:10px 0;padding-bottom:2px}
+.chip{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:99px;padding:6px 12px;font:inherit;font-size:13px;white-space:nowrap;cursor:pointer}
+.chip.on{background:var(--ink);color:var(--app);border-color:var(--ink)}
+input[type=search],textarea,select{width:100%;font:inherit;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+textarea{min-height:76px;resize:vertical}
+input:focus,textarea:focus,select:focus{outline:2px solid var(--accent);outline-offset:-1px}
+.toolbar{display:flex;gap:8px;align-items:center}
+.toolbar select{width:auto;padding:8px 10px;font-size:13px}
+.stats{display:flex;gap:8px;margin:12px 0 4px}
+.stat{flex:1;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:8px 10px}
+.stat b{display:block;font-size:20px}
+.stat span{font-size:12px;color:var(--muted)}
+.back{border:0;background:none;color:var(--accent);font:inherit;font-weight:600;cursor:pointer;padding:0;margin-bottom:12px}
+.dhead{display:flex;flex-direction:column;align-items:flex-start;gap:4px}
+.bigico{width:64px;height:64px;border-radius:18px;background:var(--accent-soft);display:grid;place-items:center;font-size:34px;margin-bottom:6px}
+.banner{margin:14px 0 0;background:var(--accent-soft);color:var(--accent);border-radius:14px;padding:10px 12px;font-weight:600}
+.seg{display:flex;gap:8px;margin:16px 0}
+.seg button{flex:1;border:1.5px solid var(--line);background:var(--card);color:var(--ink);border-radius:14px;padding:12px 6px;font:inherit;font-weight:600;cursor:pointer}
+.seg button.on.up{border-color:var(--good);background:var(--good-soft);color:var(--good)}
+.seg button.on.down{border-color:var(--bad);background:var(--bad-soft);color:var(--bad)}
+label.lbl{font-size:13px;font-weight:600;color:var(--muted);display:block;margin-bottom:6px}
+.actions{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.actions .btn{flex:1}
+.visits{list-style:none;margin:0;padding:0;border:1px solid var(--line);border-radius:16px;background:var(--card);overflow:hidden}
+.visits li{display:flex;justify-content:space-between;gap:8px;padding:10px 12px;border-top:1px solid var(--line);font-size:14px}
+.visits li:first-child{border-top:0}
+.visits li span{color:var(--muted);white-space:nowrap}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;box-shadow:var(--shadow);margin-bottom:12px}
+.card h4{margin:0 0 6px;font-size:15px}
+.card ol{margin:6px 0 0;padding-left:20px}
+.card li{margin:3px 0}
+.note{font-size:13px;background:var(--accent-soft);border-radius:12px;padding:10px 12px;margin:10px 0}
+.progress{height:8px;border-radius:99px;background:var(--line);overflow:hidden;margin:10px 0}
+.progress div{height:100%;background:var(--accent);transition:width .3s}
+.check{display:flex;gap:8px;align-items:flex-start;font-size:14px;margin:10px 0}
+.err{color:var(--bad);font-weight:600}
+.ok{color:var(--good);font-weight:600}
+code{background:var(--line);padding:1px 5px;border-radius:6px;font-size:12.5px}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <h1>Vissza<span>járó</span></h1>
+    <span class="tag">prototípus</span>
+    <span class="spacer"></span>
+    <span class="tag" id="demoBadge" title="Demó adatok – az Adatok fülön cserélheted a sajátodra">DEMÓ</span>
+  </header>
+  <main id="main"></main>
+  <nav>
+    <button data-go="home"><span class="i">🍽️</span>Hova ma?</button>
+    <button data-go="list"><span class="i">📒</span>Helyeim</button>
+    <button data-go="import"><span class="i">⬇️</span>Adatok</button>
+  </nav>
+</div>
+
+<script>
+/* ===================== Segédfüggvények ===================== */
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+function dist(a, b){ // méter
+  const R = 6371000, toR = x => x * Math.PI / 180;
+  const dLat = toR(b[0]-a[0]), dLon = toR(b[1]-a[1]);
+  const h = Math.sin(dLat/2)**2 + Math.cos(toR(a[0]))*Math.cos(toR(b[0]))*Math.sin(dLon/2)**2;
+  return 2 * R * Math.asin(Math.sqrt(h));
+}
+const fmtDist = m => m < 1000 ? Math.round(m/10)*10 + ' m' : (m/1000).toFixed(1).replace('.', ',') + ' km';
+const dayStart = d => { const x = new Date(d); x.setHours(0, 0, 0, 0); return x; };
+const daysSince = iso => Math.round((dayStart(Date.now()) - dayStart(iso)) / 864e5); // naptári napok
+function ago(iso){
+  if (!iso) return '–';
+  const d = daysSince(iso);
+  if (d <= 0) return 'ma';
+  if (d === 1) return 'tegnap';
+  if (d < 7) return d + ' napja';
+  if (d < 30) return Math.round(d/7) + ' hete';
+  if (d < 365) return Math.round(d/30) + ' hónapja';
+  return Math.round(d/365) + ' éve';
+}
+const fmtDay = iso => new Date(iso).toLocaleDateString('hu-HU', {year:'numeric', month:'short', day:'numeric', weekday:'long'});
+const fmtTime = iso => new Date(iso).toLocaleTimeString('hu-HU', {hour:'2-digit', minute:'2-digit'});
+
+/* ===================== Adattárolás ===================== */
+const STORE_KEY = 'visszajaro.v1';
+let db = load();
+function load(){
+  try { const s = localStorage.getItem(STORE_KEY); if (s) return JSON.parse(s); } catch(e) {}
+  return { demo:true, places: demoPlaces() };
+}
+function save(){ try { localStorage.setItem(STORE_KEY, JSON.stringify(db)); } catch(e) {} }
+
+function visit(daysAgo, h, m, dur){
+  const s = new Date(); s.setDate(s.getDate() - daysAgo); s.setHours(h, m, 0, 0);
+  return { start: s.toISOString(), end: new Date(s.getTime() + dur*60000).toISOString() };
+}
+function demoPlaces(){
+  const P = (id, name, cuisine, emoji, address, lat, lon, rating, note, visits) =>
+    ({ id:'demo:'+id, name, cuisine, emoji, address, lat, lon, rating, note, visits, source:'demo' });
+  return [
+    P('1','Pöttyös Bisztró','Bisztró','🥗','Budapest VII., Dob utca 18.',47.4983,19.0610,'up','A kacsacomb nagyon jó volt.',[visit(95,19,0,100),visit(160,12,30,60),visit(210,20,0,90)]),
+    P('2','Szaletli Kifőzde','Magyaros','🥘','Budapest VIII., Rökk Szilárd u. 9.',47.4930,19.0680,'up','Napi menü 2490 Ft, gyors.',[visit(3,12,10,40),visit(10,12,5,35),visit(17,12,20,40),visit(24,12,0,45),visit(40,12,15,40)]),
+    P('3','Tűzhely Pizzéria','Pizza','🍕','Budapest IX., Ráday u. 22.',47.4868,19.0618,'up','',[visit(45,19,30,80),visit(120,18,45,70)]),
+    P('4','Bors & Lime Thai','Thai','🥢','Budapest VI., Hajós u. 7.',47.5025,19.0560,'down','Túl csípős, lassú kiszolgálás.',[visit(30,13,0,70)]),
+    P('5','Kakas Kávézó','Kávézó','☕','Budapest V., Szép u. 3.',47.4925,19.0570,null,'',[visit(2,9,30,45)]),
+    P('6','Rakpart Ramen','Ramen','🍜','Budapest I., Fő u. 41.',47.5040,19.0380,'up','Tonkotsu ramen 👌',[visit(70,19,0,60),visit(75,13,0,50),visit(140,20,0,70)]),
+    P('7','Hegyvidék Vendéglő','Magyaros','🍲','Budapest XII., Városmajor u. 30.',47.5080,19.0170,null,'',[visit(6,13,0,95)]),
+    P('8','Duna Halászcsárda','Halétterem','🐟','Budapest III., Királyok útja 85.',47.5620,19.0560,'down','Drága, a halászlé langyos volt.',[visit(200,14,0,110)]),
+    P('9','Mangó Burger','Burger','🍔','Budapest XIII., Pozsonyi út 14.',47.5150,19.0520,'up','',[visit(21,20,15,55),visit(50,19,40,60)])
+  ];
+}
+const DEMO_HERE = [47.4977, 19.0545];
+const DEMO_NEARBY = [
+  { name:'Paprika Műhely', type:'Étterem · Magyaros', emoji:'🌶️', d:240, spons:true, offer:'–15% az első látogatáskor ebben a hónapban' },
+  { name:'Zöldkert Bistro', type:'Étterem · Vegetáriánus', emoji:'🥦', d:380 },
+  { name:'Szezám Gyros', type:'Gyorsétterem · Görög', emoji:'🥙', d:520 },
+  { name:'Fekete Macska Kávézó', type:'Kávézó', emoji:'☕', d:610 }
+];
+
+/* ===================== Állapot ===================== */
+let view = { name:'home' };
+let here = db.demo ? DEMO_HERE : null;
+let hereLabel = db.demo ? 'Demó helyzet: Deák Ferenc tér' : '';
+let nearby = null, nearbyState = 'idle', nearbyErr = '';
+let listState = { q:'', f:'all', sort:'recent' };
+let imp = null; // import állapot
+
+const visible = () => db.places.filter(p => !p.hidden);
+const lastVisit = p => p.visits.reduce((a, v) => v.start > a ? v.start : a, '');
+const byId = id => db.places.find(p => p.id === id);
+
+/* ===================== Megjelenítés ===================== */
+function go(v){ view = v; render(); $('#main').scrollTop = 0; }
+function render(){
+  const m = $('#main');
+  if (view.name === 'home') m.innerHTML = homeHTML();
+  else if (view.name === 'list') { m.innerHTML = listHTML(); }
+  else if (view.name === 'detail') m.innerHTML = detailHTML();
+  else if (view.name === 'import') m.innerHTML = importHTML();
+  const active = view.name === 'detail' ? view.from : view.name;
+  document.querySelectorAll('nav button').forEach(b => b.classList.toggle('on', b.dataset.go === active));
+  $('#demoBadge').hidden = !db.demo;
+}
+
+function badge(p){
+  if (p.rating === 'up') return '<span class="badge up" title="Tetszett">👍</span>';
+  if (p.rating === 'down') return '<span class="badge down" title="Nem tetszett">👎</span>';
+  return '<span class="badge none" title="Még nem értékelted">?</span>';
+}
+function quick(p){
+  return `<span class="quick"><button data-rate="${esc(p.id)}|up" title="Tetszett">👍</button><button data-rate="${esc(p.id)}|down" title="Nem tetszett">👎</button></span>`;
+}
+function row(p, opts = {}){
+  const d = here ? dist(here, [p.lat, p.lon]) : null;
+  const sub = [p.cuisine, d != null ? fmtDist(d) : null].filter(Boolean).join(' · ');
+  return `<div class="row" data-open="${esc(p.id)}" role="button" tabindex="0">
+    <div class="ico">${esc(p.emoji || '🍽️')}</div>
+    <div class="rmain">
+      <div class="rname">${esc(p.name)}</div>
+      <div class="rsub">${esc(sub)}</div>
+      <div class="rmeta">Utoljára ${ago(lastVisit(p))} · ${p.visits.length}× jártál itt</div>
+    </div>
+    ${opts.quick && !p.rating ? quick(p) : badge(p)}
+  </div>`;
+}
+const section = (title, hint, items, emptyText) =>
+  `<h3>${title} ${hint ? `<small>${hint}</small>` : ''}</h3>` +
+  (items.length ? `<div class="list">${items.join('')}</div>` : `<div class="empty">${emptyText}</div>`);
+
+function homeHTML(){
+  const ps = visible();
+  const liked = ps.filter(p => p.rating === 'up');
+  const longAgo = liked.filter(p => daysSince(lastVisit(p)) >= 30)
+    .sort((a, b) => lastVisit(a).localeCompare(lastVisit(b))).slice(0, 4);
+  const near = here ? liked.map(p => [p, dist(here, [p.lat, p.lon])]).sort((a, b) => a[1] - b[1]).slice(0, 3).map(x => x[0]) : [];
+  const unrated = ps.filter(p => !p.rating).sort((a, b) => lastVisit(b).localeCompare(lastVisit(a))).slice(0, 4);
+
+  let html = `<div class="hero">
+      <h2>Hova menjünk ma?</h2>
+      <p>${liked.length ? `${liked.length} kedvenc helyed van – válassz, vagy bízd a véletlenre.` : 'Értékeld a helyeidet, és innen ajánlok.'}</p>
+      <button class="btn" data-act="random" ${liked.length ? '' : 'disabled'}>🎲 Dobj egy kedvencet</button>
+    </div>
+    <div class="locbar">📍 ${here ? `<b>${esc(hereLabel)}</b>` : 'Nincs megadva helyzet'} <span class="spacer" style="flex:1"></span>
+      <button class="btn ghost sm" data-act="locate">Saját helyem</button></div>`;
+
+  html += section('Rég jártál itt – pedig szeretted', '', longAgo.map(p => row(p)), 'Még nincs olyan kedvenced, ahol 30+ napja jártál.');
+  if (here) html += section('Kedvencek a közelben', '', near.map(p => row(p)), 'Még nincs 👍-os helyed.');
+  html += section('Milyen volt?', 'értékeld egy koppintással', unrated.map(p => row(p, {quick:true})), 'Minden helyet értékeltél. 🎉');
+  html += `<h3>Új helyek a közelben <small>ahol még nem jártál</small></h3>` + nearbyHTML();
+  return html;
+}
+
+function nearbyHTML(){
+  if (db.demo && !nearby) {
+    return `<div class="list">${DEMO_NEARBY.map(n => `<div class="row ${n.spons ? 'spons' : ''}">
+      <div class="ico">${n.emoji}</div>
+      <div class="rmain">${n.spons ? '<div class="slabel">Szponzorált · bevételi minta</div>' : ''}
+        <div class="rname">${esc(n.name)}</div><div class="rsub">${esc(n.type)} · ${fmtDist(n.d)}</div>
+        ${n.offer ? `<div class="rmeta" style="color:var(--spons)">${esc(n.offer)}</div>` : '<div class="rmeta">Még nem jártál itt</div>'}
+      </div></div>`).join('')}</div>
+      <p class="small muted">Demó lista. A „Saját helyem” gombbal valódi közeli helyeket keresek (OpenStreetMap).</p>`;
+  }
+  if (!here) return `<div class="empty">Add meg a helyzeted a „Saját helyem” gombbal.</div>`;
+  if (nearbyState === 'loading') return `<div class="empty">Keresés a közelben…</div>`;
+  if (nearbyState === 'error') return `<div class="empty err">${esc(nearbyErr)}</div><button class="btn ghost block" data-act="nearby" style="margin-top:8px">Újrapróbálom</button>`;
+  if (!nearby) return `<button class="btn ghost block" data-act="nearby">🔎 Keresés 1 km-en belül</button>
+      <p class="small muted">A helyzeted koordinátáját az OpenStreetMap Overpass szervere kapja meg a kereséshez.</p>`;
+  if (!nearby.length) return `<div class="empty">Nem találtam új helyet 1 km-en belül.</div>`;
+  return `<div class="list">${nearby.slice(0, 12).map(n => `<a class="row" style="text-decoration:none;color:inherit" target="_blank" rel="noopener" href="${mapsDir(n.lat, n.lon, n.name)}">
+      <div class="ico">${esc(n.emoji)}</div>
+      <div class="rmain"><div class="rname">${esc(n.name)}</div><div class="rsub">${esc(n.cuisine)} · ${fmtDist(n.d)}</div><div class="rmeta">Útvonal megnyitása ›</div></div></a>`).join('')}</div>`;
+}
+
+function listHTML(){
+  const ps = visible();
+  const up = ps.filter(p => p.rating === 'up').length, down = ps.filter(p => p.rating === 'down').length;
+  const chip = (f, t) => `<button class="chip ${listState.f === f ? 'on' : ''}" data-act="filter" data-f="${f}">${t}</button>`;
+  return `<h2>Helyeim</h2>
+    <div class="stats">
+      <div class="stat"><b>${ps.length}</b><span>hely</span></div>
+      <div class="stat"><b>${ps.reduce((a, p) => a + p.visits.length, 0)}</b><span>látogatás</span></div>
+      <div class="stat"><b>${up}/${down}</b><span>👍 / 👎</span></div>
+    </div>
+    <div class="toolbar" style="margin-top:10px">
+      <input type="search" id="q" placeholder="Keresés név vagy konyha szerint…" value="${esc(listState.q)}">
+      <select id="sort" aria-label="Rendezés">
+        <option value="recent" ${listState.sort === 'recent' ? 'selected' : ''}>Legutóbbi</option>
+        <option value="count" ${listState.sort === 'count' ? 'selected' : ''}>Leggyakoribb</option>
+        <option value="dist" ${listState.sort === 'dist' ? 'selected' : ''} ${here ? '' : 'disabled'}>Legközelebbi</option>
+        <option value="name" ${listState.sort === 'name' ? 'selected' : ''}>Név</option>
+      </select>
+    </div>
+    <div class="chips">${chip('all', 'Mind')}${chip('up', '👍 Tetszett')}${chip('down', '👎 Nem tetszett')}${chip('none', 'Értékeletlen')}${chip('hidden', 'Rejtett')}</div>
+    <div class="list" id="items">${listItems()}</div>`;
+}
+function listItems(){
+  const q = listState.q.trim().toLowerCase();
+  let ps = listState.f === 'hidden' ? db.places.filter(p => p.hidden) : visible();
+  if (listState.f === 'up') ps = ps.filter(p => p.rating === 'up');
+  if (listState.f === 'down') ps = ps.filter(p => p.rating === 'down');
+  if (listState.f === 'none') ps = ps.filter(p => !p.rating);
+  if (q) ps = ps.filter(p => (p.name + ' ' + (p.cuisine || '') + ' ' + (p.address || '')).toLowerCase().includes(q));
+  const s = listState.sort;
+  ps = ps.slice().sort((a, b) =>
+    s === 'count' ? b.visits.length - a.visits.length :
+    s === 'name' ? a.name.localeCompare(b.name, 'hu') :
+    s === 'dist' && here ? dist(here, [a.lat, a.lon]) - dist(here, [b.lat, b.lon]) :
+    lastVisit(b).localeCompare(lastVisit(a)));
+  return ps.length ? ps.map(p => row(p)).join('') : '<div class="empty">Nincs találat.</div>';
+}
+
+function mapsDir(lat, lon){ return `https://www.google.com/maps/dir/?api=1&destination=${lat},${lon}`; }
+function mapsSearch(p){ return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(p.name + ' ' + (p.address || ''))}`; }
+
+function detailHTML(){
+  const p = byId(view.id);
+  if (!p) return '<button class="back" data-act="back">‹ Vissza</button><div class="empty">A hely nem található.</div>';
+  const d = here ? dist(here, [p.lat, p.lon]) : null;
+  const visits = p.visits.slice().sort((a, b) => b.start.localeCompare(a.start));
+  return `<button class="back" data-act="back">‹ Vissza</button>
+    <div class="dhead">
+      <div class="bigico">${esc(p.emoji || '🍽️')}</div>
+      <h2>${esc(p.name)}</h2>
+      <div class="muted">${esc([p.cuisine, p.address].filter(Boolean).join(' · '))}</div>
+      ${d != null ? `<div class="muted small">📍 ${fmtDist(d)} innen</div>` : ''}
+    </div>
+    ${view.pick ? `<div class="banner">🎲 Ma ezt ajánlom! Utoljára ${ago(lastVisit(p))} jártál itt.</div>` : ''}
+    <div class="seg">
+      <button class="up ${p.rating === 'up' ? 'on' : ''}" data-rate="${esc(p.id)}|up">👍 Tetszett</button>
+      <button class="down ${p.rating === 'down' ? 'on' : ''}" data-rate="${esc(p.id)}|down">👎 Nem tetszett</button>
+    </div>
+    <label class="lbl" for="note">Jegyzet magadnak</label>
+    <textarea id="note" placeholder="Mit ettél? Mit rendelnél újra, mit ne?">${esc(p.note)}</textarea>
+    <div class="actions">
+      <a class="btn" target="_blank" rel="noopener" href="${mapsDir(p.lat, p.lon)}">🧭 Útvonal</a>
+      <a class="btn ghost" target="_blank" rel="noopener" href="${mapsSearch(p)}">Google Térkép</a>
+    </div>
+    <h3>Látogatások <small>${visits.length} alkalom</small></h3>
+    <ul class="visits">${visits.map(v => {
+      const mins = Math.round((new Date(v.end) - new Date(v.start)) / 60000);
+      return `<li><b>${fmtDay(v.start)}</b><span>${fmtTime(v.start)}–${fmtTime(v.end)} · ${mins} p</span></li>`;
+    }).join('')}</ul>
+    <p style="margin-top:18px">${p.hidden
+      ? `<button class="link" data-act="hide" data-id="${esc(p.id)}">Visszaállítás a listába</button>`
+      : `<button class="link danger" data-act="hide" data-id="${esc(p.id)}">Ez nem étterem / ne mutasd többet</button>`}</p>`;
+}
+
+/* ===================== Import (Google Idővonal) ===================== */
+function importHTML(){
+  let h = `<h2>Adatok</h2>
+    <p class="muted">Töltsd be a Google Térkép Idővonal exportodat – az app kikeresi belőle, melyik étteremben jártál.</p>
+    <div class="card">
+      <h4>1. Exportáld az Idővonalat</h4>
+      <ol class="small">
+        <li><b>Android:</b> Beállítások → Hely → Helyszolgáltatások → Idővonal → <i>Idővonal-adatok exportálása</i> → <code>Timeline.json</code></li>
+        <li><b>iPhone:</b> Google Térkép → profilkép → Idővonal → ⋯ → Beállítások → <i>Idővonal-adatok exportálása</i></li>
+        <li><b>Régi Takeout:</b> a <code>Semantic Location History</code> mappa havi JSON fájljai (többet is kiválaszthatsz)</li>
+      </ol>
+      <p class="small muted" style="margin-bottom:0">A fájl a böngésződben marad, sehova nem töltődik fel.</p>
+    </div>
+    <div class="card">
+      <h4>2. Válaszd ki a fájl(oka)t</h4>
+      <input type="file" id="file" accept=".json,application/json" multiple>
+      <p class="small muted" style="margin:8px 0 0">Nincs kéznél? <button class="link" data-act="sample">Próbáld ki egy minta-idővonallal</button></p>
+    </div>`;
+
+  if (imp) {
+    if (imp.error) h += `<div class="card"><p class="err">${esc(imp.error)}</p></div>`;
+    else {
+      h += `<div class="card"><h4>3. Megállások</h4>
+        <p class="small">${esc(imp.files)}<br>
+        <b>${imp.stopsTotal}</b> megállás · ebből <b>${imp.excludedHome}</b> otthon/munkahely, <b>${imp.excludedDur}</b> túl rövid vagy túl hosszú (20 perc – 4 óra) → kizárva<br>
+        Maradt <b>${imp.kept}</b> megállás, <b>${imp.groups.length}</b> különböző helyen.</p>`;
+      if (imp.status === 'parsed') {
+        h += `<div class="note">🔒 A felismeréshez a megállások <b>koordinátáit</b> elküldöm az OpenStreetMap Overpass szerverének, hogy megnézzem, van-e ott étterem, kávézó vagy bár. Neved, időpontok nem mennek ki.</div>
+          ${db.demo ? `<label class="check"><input type="checkbox" id="dropDemo" checked> A demó adatokat töröljem az importáláskor</label>` : ''}
+          <button class="btn block" data-act="match" ${imp.groups.length ? '' : 'disabled'}>🍽️ Éttermek felismerése</button>`;
+      }
+      if (imp.status === 'matching') {
+        h += `<div class="progress"><div style="width:${Math.round(imp.done / imp.groups.length * 100)}%"></div></div>
+          <p class="small muted">${imp.done} / ${imp.groups.length} hely ellenőrizve…</p>`;
+      }
+      if (imp.status === 'done') {
+        h += `<p class="ok">✔ ${imp.newPlaces} új vendéglátóhely, ${imp.newVisits} látogatás hozzáadva.</p>
+          <p class="small muted">${imp.noMatch} helyen nem volt étterem 60 méteren belül (bolt, edzőterem, ismerős lakása stb.).</p>
+          <button class="btn block" data-go="list">Megnézem a helyeimet</button>`;
+      }
+      if (imp.status === 'failed') {
+        h += `<p class="err">${esc(imp.failMsg)}</p><button class="btn block" data-act="match">Újrapróbálom</button>`;
+      }
+      h += `</div>`;
+    }
+  }
+
+  h += `<h3>Adatkezelés</h3>
+    <div class="card small">
+      <p style="margin-top:0">Minden adat csak ebben a böngészőben tárolódik (localStorage).</p>
+      <div class="actions">
+        <button class="btn ghost sm" data-act="loadDemo">Demó adatok betöltése</button>
+        <button class="btn ghost sm" data-act="wipe" style="color:var(--bad)">Minden adat törlése</button>
+      </div>
+    </div>`;
+  return h;
+}
+
+function parseLatLng(v){
+  if (v == null) return null;
+  if (typeof v === 'object') {
+    if ('latitudeE7' in v) return [v.latitudeE7 / 1e7, v.longitudeE7 / 1e7];
+    if ('latLng' in v) return parseLatLng(v.latLng);
+    if ('latitude' in v) return [+v.latitude, +v.longitude];
+    return null;
+  }
+  const m = String(v).match(/(-?\d+(?:\.\d+)?)\D+?(-?\d+(?:\.\d+)?)/);
+  return m ? [+m[1], +m[2]] : null;
+}
+const msToIso = ms => ms ? new Date(+ms).toISOString() : null;
+
+/* Három formátumot ismer: új Android (semanticSegments), új iOS (tömb), régi Takeout (timelineObjects) */
+function extractStops(json){
+  const out = [];
+  let recognized = false;
+  const push = o => {
+    if (!o.ll || !o.start || !o.end) return;
+    const s = new Date(o.start), e = new Date(o.end);
+    if (isNaN(s) || isNaN(e)) return;
+    o.start = s.toISOString(); o.end = e.toISOString(); o.mins = (e - s) / 60000;
+    out.push(o);
+  };
+  const segs = Array.isArray(json) ? json : json && json.semanticSegments;
+  if (Array.isArray(segs)) {
+    recognized = true;
+    for (const s of segs) {
+      const c = s && s.visit && s.visit.topCandidate;
+      if (!c) continue;
+      push({ start:s.startTime, end:s.endTime, ll:parseLatLng(c.placeLocation), placeId:c.placeId || c.placeID || null,
+             semantic:String(c.semanticType || '').toUpperCase(), name:null, address:null });
+    }
+  }
+  if (json && Array.isArray(json.timelineObjects)) {
+    recognized = true;
+    for (const o of json.timelineObjects) {
+      const pv = o.placeVisit; if (!pv) continue;
+      const l = pv.location || {}, d = pv.duration || {};
+      push({ start:d.startTimestamp || msToIso(d.startTimestampMs), end:d.endTimestamp || msToIso(d.endTimestampMs),
+             ll:parseLatLng(l), placeId:l.placeId || null, semantic:String(l.semanticType || '').toUpperCase(),
+             name:l.name || null, address:l.address || null });
+    }
+  }
+  if (!recognized) {
+    if (json && (json.locations || json.rawSignals)) throw new Error('Ez nyers helyadat-fájl (pl. Records.json) – ebben nincsenek megállások. A Timeline.json vagy a Semantic Location History fájljait válaszd.');
+    throw new Error('Ismeretlen fájlformátum. Google Idővonal exportot (Timeline.json) vagy Takeout Semantic Location History fájlt válassz.');
+  }
+  return out;
+}
+
+function prepareImport(jsons, fileLabel){
+  let stops = [];
+  for (const j of jsons) stops = stops.concat(extractStops(j));
+  const isHomeWork = s => /HOME|WORK/.test(s.semantic);
+  const hw = stops.filter(isHomeWork);
+  const rest = stops.filter(s => !isHomeWork(s));
+  const keep = rest.filter(s => s.mins >= 20 && s.mins <= 240);
+  const groups = new Map();
+  for (const s of keep) {
+    const key = s.placeId || s.ll.map(x => x.toFixed(4)).join(',');
+    if (!groups.has(key)) groups.set(key, { key, ll:s.ll, name:s.name, address:s.address, stops:[] });
+    const g = groups.get(key);
+    g.stops.push(s);
+    if (!g.name && s.name) { g.name = s.name; g.address = s.address; }
+  }
+  imp = { status:'parsed', files:fileLabel, stopsTotal:stops.length, excludedHome:hw.length,
+          excludedDur:rest.length - keep.length, kept:keep.length, groups:[...groups.values()], done:0 };
+}
+
+/* --- OpenStreetMap / Overpass --- */
+const FOOD = 'restaurant|cafe|fast_food|bar|pub|biergarten|food_court|ice_cream';
+const OVERPASS = [
+  'https://overpass-api.de/api/interpreter',
+  'https://overpass.kumi.systems/api/interpreter',
+  'https://overpass.private.coffee/api/interpreter'
+];
+async function overpass(q){
+  let lastErr = '';
+  for (const url of OVERPASS) {          // ha az egyik szerver nem válaszol, a következővel próbálkozik
+    for (let attempt = 0; attempt < 2; attempt++) {
+      const ac = new AbortController();
+      const timer = setTimeout(() => ac.abort(), 90000);
+      try {
+        const r = await fetch(url, { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'},
+                                     body:'data=' + encodeURIComponent(q), signal:ac.signal });
+        if (r.ok) return (await r.json()).elements || [];
+        lastErr = 'HTTP ' + r.status;
+        if (r.status === 429 || r.status === 504) { await sleep(4000 * (attempt + 1)); continue; }
+        break;
+      } catch (e) {
+        lastErr = e.name === 'AbortError' ? 'időtúllépés' : e.message;
+        break;
+      } finally { clearTimeout(timer); }
+    }
+  }
+  throw new Error('Nem érem el az OpenStreetMap szervereket (' + lastErr + '). Ellenőrizd a netkapcsolatot, vagy próbáld újra pár perc múlva.');
+}
+const elLL = e => e.lat != null ? [e.lat, e.lon] : e.center ? [e.center.lat, e.center.lon] : null;
+
+const AMENITY = { restaurant:['Étterem','🍽️'], cafe:['Kávézó','☕'], fast_food:['Gyorsétterem','🍟'], bar:['Bár','🍸'], pub:['Pub','🍺'],
+  biergarten:['Sörkert','🍺'], food_court:['Ételudvar','🍱'], ice_cream:['Fagyizó','🍦'] };
+const CUISINE = { hungarian:['Magyaros','🥘'], regional:['Magyaros','🥘'], pizza:['Pizza','🍕'], italian:['Olasz','🍝'], burger:['Burger','🍔'],
+  asian:['Ázsiai','🥢'], chinese:['Kínai','🥡'], japanese:['Japán','🍣'], sushi:['Sushi','🍣'], ramen:['Ramen','🍜'], thai:['Thai','🥢'],
+  vietnamese:['Vietnámi','🍜'], indian:['Indiai','🍛'], kebab:['Kebab','🥙'], greek:['Görög','🥙'], mexican:['Mexikói','🌮'],
+  french:['Francia','🥐'], coffee_shop:['Kávézó','☕'], cake:['Cukrászda','🍰'], ice_cream:['Fagyi','🍦'], sandwich:['Szendvics','🥪'],
+  vegan:['Vegán','🥦'], vegetarian:['Vegetáriánus','🥦'], seafood:['Tenger gyümölcsei','🦐'], fish:['Hal','🐟'], steak_house:['Steak','🥩'],
+  international:['Nemzetközi','🍽️'], american:['Amerikai','🍔'], chicken:['Csirke','🍗'], breakfast:['Reggeliző','🍳'], bakery:['Pékség','🥐'] };
+function describe(tags){
+  const a = AMENITY[tags.amenity] || ['Vendéglátóhely','🍽️'];
+  const c0 = (tags.cuisine || '').split(';')[0].trim();
+  const c = CUISINE[c0];
+  return { cuisine: c ? (tags.amenity === 'restaurant' || c[0] === a[0] ? c[0] : a[0] + ' · ' + c[0]) :(c0 ? a[0] + ' · ' + c0.replace(/_/g, ' ') : a[0]), emoji: c ? c[1] : a[1] };
+}
+const addrOf = t => [t['addr:city'], [t['addr:street'], t['addr:housenumber']].filter(Boolean).join(' ')].filter(Boolean).join(', ');
+
+async function runMatch(){
+  if ($('#dropDemo')) imp.dropDemo = $('#dropDemo').checked;
+  const dropDemo = !!imp.dropDemo;
+  imp.status = 'matching'; imp.done = 0; render();
+  const B = 20;
+  try {
+    for (let i = 0; i < imp.groups.length; i += B) {
+      const batch = imp.groups.slice(i, i + B);
+      const q = '[out:json][timeout:60];(' + batch.map(g =>
+        `nwr(around:60,${g.ll[0].toFixed(6)},${g.ll[1].toFixed(6)})["amenity"~"^(${FOOD})$"]["name"];`).join('') + ');out center tags;';
+      const els = await overpass(q);
+      for (const g of batch) {
+        let best = null, bd = Infinity;
+        for (const e of els) { const ll = elLL(e); if (!ll) continue; const d = dist(g.ll, ll); if (d < bd) { bd = d; best = e; } }
+        g.osm = best && bd <= 60 ? best : null;
+      }
+      imp.done = Math.min(imp.groups.length, i + B);
+      if (view.name === 'import') render();
+      if (i + B < imp.groups.length) await sleep(1200);
+    }
+  } catch (e) {
+    imp.status = 'failed'; imp.failMsg = e.message || String(e); render(); return;
+  }
+  if (dropDemo && db.demo) { db.places = db.places.filter(p => p.source !== 'demo'); }
+  db.demo = false;
+  if (here === DEMO_HERE) { here = null; hereLabel = ''; nearby = null; }
+  let newPlaces = 0, newVisits = 0, noMatch = 0;
+  for (const g of imp.groups) {
+    if (!g.osm) { noMatch++; continue; }
+    const e = g.osm, t = e.tags || {}, id = 'osm:' + e.type + '/' + e.id, ll = elLL(e);
+    let p = byId(id);
+    if (!p) {
+      const dsc = describe(t);
+      p = { id, name: g.name || t.name, cuisine: dsc.cuisine, emoji: dsc.emoji, address: addrOf(t) || g.address || '',
+            lat: ll[0], lon: ll[1], rating: null, note: '', visits: [], source: 'import' };
+      db.places.push(p); newPlaces++;
+    }
+    for (const s of g.stops) {
+      if (!p.visits.some(v => v.start === s.start)) { p.visits.push({ start: s.start, end: s.end }); newVisits++; }
+    }
+  }
+  save();
+  Object.assign(imp, { status:'done', newPlaces, newVisits, noMatch });
+  render();
+}
+
+async function findNearby(){
+  nearbyState = 'loading'; render();
+  try {
+    const q = `[out:json][timeout:30];nwr(around:1000,${here[0].toFixed(5)},${here[1].toFixed(5)})["amenity"~"^(${FOOD})$"]["name"];out center tags;`;
+    const els = await overpass(q);
+    const known = new Set(db.places.map(p => p.id));
+    nearby = els.filter(e => !known.has('osm:' + e.type + '/' + e.id) && elLL(e))
+      .map(e => { const ll = elLL(e), dsc = describe(e.tags); return { name:e.tags.name, cuisine:dsc.cuisine, emoji:dsc.emoji, lat:ll[0], lon:ll[1], d:dist(here, ll) }; })
+      .sort((a, b) => a.d - b.d);
+    nearbyState = 'done';
+  } catch (e) { nearbyState = 'error'; nearbyErr = e.message || String(e); }
+  render();
+}
+
+/* Minta-idővonal (új Android formátum) – Budapest belvárosi pontok */
+function sampleTimeline(){
+  const pts = [
+    [47.49790, 19.05960, 5, 19, 0, 95, 'UNKNOWN'],
+    [47.49800, 19.06250, 12, 13, 0, 50, 'UNKNOWN'],
+    [47.48700, 19.06170, 20, 18, 30, 110, 'UNKNOWN'],
+    [47.49790, 19.05960, 40, 20, 0, 80, 'UNKNOWN'],
+    [47.50370, 19.06310, 33, 12, 15, 60, 'UNKNOWN'],
+    [47.47900, 19.05100, 60, 13, 0, 70, 'UNKNOWN'],
+    [47.51500, 19.08000, 1, 22, 0, 540, 'HOME'],
+    [47.49600, 19.07000, 2, 9, 0, 480, 'WORK'],
+    [47.49900, 19.05600, 3, 17, 0, 8, 'UNKNOWN']
+  ];
+  return { semanticSegments: pts.map((p, i) => {
+    const v = visit(p[2], p[3], p[4], p[5]);
+    return { startTime:v.start, endTime:v.end, visit:{ hierarchyLevel:0, probability:0.9,
+      topCandidate:{ placeId:'SAMPLE_' + p[0] + '_' + p[1], semanticType:p[6], probability:0.8, placeLocation:{ latLng:`${p[0]}°, ${p[1]}°` } } } };
+  }) };
+}
+
+/* ===================== Események ===================== */
+const actions = {
+  back(){ go({ name: view.from || 'home' }); },
+  random(){
+    const liked = visible().filter(p => p.rating === 'up');
+    if (!liked.length) return;
+    const p = liked[Math.floor(Math.random() * liked.length)];
+    go({ name:'detail', id:p.id, from:'home', pick:true });
+  },
+  locate(){
+    if (!navigator.geolocation) { alert('A böngésző nem támogatja a helymeghatározást.'); return; }
+    navigator.geolocation.getCurrentPosition(pos => {
+      here = [pos.coords.latitude, pos.coords.longitude]; hereLabel = 'Jelenlegi helyed';
+      nearby = null; nearbyState = 'idle'; render();
+    }, err => alert('Nem sikerült lekérni a helyzeted: ' + err.message), { enableHighAccuracy:true, timeout:10000 });
+  },
+  nearby(){ if (here) findNearby(); },
+  filter(t){ listState.f = t.dataset.f; render(); },
+  hide(t){ const p = byId(t.dataset.id); if (!p) return; p.hidden = !p.hidden; save(); actions.back(); },
+  sample(){ try { prepareImport([sampleTimeline()], 'Minta-idővonal (9 megállás Budapesten)'); } catch (e) { imp = { error:e.message }; } render(); },
+  match(){ runMatch(); },
+  loadDemo(){ if (confirm('Betöltsem a demó adatokat? A saját adataid megmaradnak.')) {
+    const ids = new Set(db.places.map(p => p.id));
+    db.places = db.places.concat(demoPlaces().filter(p => !ids.has(p.id))); db.demo = true;
+    here = DEMO_HERE; hereLabel = 'Demó helyzet: Deák Ferenc tér'; nearby = null; save(); render(); } },
+  wipe(){ if (confirm('Biztosan törlöd az összes helyet és értékelést ebből a böngészőből? Ez nem vonható vissza.')) {
+    db = { demo:false, places:[] }; here = null; hereLabel = ''; nearby = null; imp = null; save(); render(); } }
+};
+
+document.addEventListener('click', e => {
+  const t = e.target.closest('[data-rate],[data-open],[data-go],[data-act]');
+  if (!t) return;
+  if (t.dataset.rate) {
+    const [id, r] = t.dataset.rate.split('|'); const p = byId(id);
+    if (p) { p.rating = p.rating === r ? null : r; save(); render(); }
+    return;
+  }
+  if (t.dataset.open) { go({ name:'detail', id:t.dataset.open, from: view.name === 'detail' ? view.from : view.name }); return; }
+  if (t.dataset.go) { go({ name:t.dataset.go }); return; }
+  if (actions[t.dataset.act]) actions[t.dataset.act](t);
+});
+document.addEventListener('keydown', e => {
+  if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('.row[data-open]')) { e.preventDefault(); e.target.click(); }
+});
+document.addEventListener('input', e => {
+  if (e.target.id === 'note') { const p = byId(view.id); if (p) { p.note = e.target.value; save(); } }
+  if (e.target.id === 'q') { listState.q = e.target.value; $('#items').innerHTML = listItems(); }
+});
+document.addEventListener('change', async e => {
+  if (e.target.id === 'sort') { listState.sort = e.target.value; $('#items').innerHTML = listItems(); }
+  if (e.target.id === 'file') {
+    const files = [...e.target.files];
+    if (!files.length) return;
+    try {
+      const jsons = [];
+      for (const f of files) jsons.push(JSON.parse(await f.text()));
+      prepareImport(jsons, files.length === 1 ? files[0].name : files.length + ' fájl');
+    } catch (err) {
+      imp = { error: err instanceof SyntaxError ? 'A fájl nem érvényes JSON.' : err.message };
+    }
+    render();
+  }
+});
+
+render();
+</script>
+</body>
+</html>
