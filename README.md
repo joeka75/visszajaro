@@ -29,6 +29,18 @@ A háttér-helyfigyelés és az értesítés-gombok az Expo Go-ban nem működne
 
 Az `android/` és `ios/` mappát a build generálja (nincs Gitben); natív beállítás csak az `app.json`-ban legyen.
 
+## Önálló változat (gép nélkül is fut)
+
+A fejlesztői build minden induláskor a gépről tölti a kódot. A kiadási (release) APK-ban benne van a kód, gép nélkül is indul.
+
+```bash
+npx expo run:android --variant release --device
+```
+
+- A teszt idejére a debug kulccsal van aláírva, így a fejlesztői változat helyére települ, és az adatok megmaradnak.
+- Vissza a fejlesztői változatra: `npx expo run:android --device`.
+- Play Áruházba feltöltéshez saját feltöltő kulcs kell (EAS vagy saját keystore), és AAB formátum.
+
 ## Automatikus felismerés (M3)
 
 Beállítások → Automatikus felismerés → Bekapcsolás → hely: „Mindig engedélyezés”, értesítések: engedélyezés.
